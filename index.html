@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CrownRingMatch — Find Your Ring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --blue:        #0071E3;
+  --blue-hover:  #0077ED;
+  --blue-light:  #E8F1FB;
+  --gray-50:     #F5F5F7;
+  --gray-100:    #E8E8ED;
+  --gray-200:    #D2D2D7;
+  --gray-400:    #86868B;
+  --gray-600:    #6E6E73;
+  --gray-900:    #1D1D1F;
+  --surface:     #FFFFFF;
+  --surface-2:   #F5F5F7;
+  --r-xs:        8px;
+  --r-sm:        12px;
+  --r:           18px;
+  --r-lg:        22px;
+  --sans:        'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--sans);
+  background: var(--surface);
+  color: var(--gray-900);
+  min-height: 100vh;
+  font-size: 15px;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.hdr {
+  padding: 16px 24px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 0.5px solid var(--gray-100);
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.hdr-crown {
+  width: 28px; height: 28px;
+  background: var(--gray-900);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.hdr-crown svg { width: 16px; height: 16px; }
+.hdr-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--gray-900);
+  letter-spacing: -0.02em;
+}
+.hdr-sub {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--gray-400);
+  letter-spacing: -0.01em;
+}
+
+/* ── HERO SECTION ──────────────────────────── */
+.hero {
+  padding: 40px 24px 0;
+  text-align: center;
+}
+.hero h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--gray-900);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.hero p {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--gray-600);
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* ── UPLOAD ZONE ───────────────────────────── */
+.upload-wrap { padding: 24px 20px 0; }
+
+.drop {
+  position: relative;
+  border: 1.5px dashed var(--gray-200);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.drop:hover, .drop.over {
+  background: var(--blue-light);
+  border-color: var(--blue);
+  border-style: solid;
+}
+.drop input {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-icon {
+  width: 48px; height: 48px;
+  margin: 0 auto 16px;
+  background: var(--surface);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
+}
+.drop-icon svg { width: 22px; height: 22px; color: var(--blue); }
+.drop h2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--gray-900);
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.drop p {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--gray-400);
+  letter-spacing: -0.01em;
+}
+
+/* ── DIVIDER ───────────────────────────────── */
+.or-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--gray-400);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.or-row::before, .or-row::after {
+  content:''; flex:1; height:0.5px; background: var(--gray-100);
+}
+
+/* ── CAMERA BUTTON ─────────────────────────── */
+.cam-btn {
+  margin: 0 20px;
+  width: calc(100% - 40px);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 13px;
+  background: var(--surface-2);
+  border: 0.5px solid var(--gray-200);
+  border-radius: var(--r-sm);
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--blue);
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: background 0.12s ease;
+}
+.cam-btn:hover { background: var(--blue-light); }
+.cam-btn svg { width: 17px; height: 17px; }
+
+/* ── PREVIEW ───────────────────────────────── */
+.preview {
+  display: none;
+  margin: 16px 20px 0;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 0.5px solid var(--gray-200);
+  border-radius: var(--r);
+  gap: 14px;
+  align-items: center;
+}
+.preview.on { display: flex; }
+.prev-img {
+  width: 64px; height: 64px;
+  border-radius: var(--r-xs);
+  object-fit: cover;
+  background: var(--surface-2);
+  border: 0.5px solid var(--gray-100);
+  flex-shrink: 0;
+}
+.prev-info { flex: 1; min-width: 0; }
+.prev-name {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--gray-600);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+.prev-actions { display: flex; gap: 8px; }
+
+.btn-blue {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px;
+  background: var(--blue);
+  color: white;
+  border: none; border-radius: 980px;
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: background 0.12s ease, transform 0.1s ease;
+}
+.btn-blue:hover  { background: var(--blue-hover); }
+.btn-blue:active { transform: scale(0.97); }
+.btn-blue:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.btn-ghost {
+  display: inline-flex; align-items: center;
+  padding: 8px 14px;
+  background: transparent;
+  border: 0.5px solid var(--gray-200);
+  border-radius: 980px;
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 500;
+  color: var(--gray-600);
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: background 0.12s ease;
+}
+.btn-ghost:hover { background: var(--surface-2); }
+
+/* ── STATUS ────────────────────────────────── */
+.status {
+  display: none;
+  margin: 14px 20px 0;
+  padding: 13px 16px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  align-items: center;
+  gap: 10px;
+}
+.status.on      { display: flex; }
+.status.loading { background: var(--surface-2); color: var(--gray-600); border: 0.5px solid var(--gray-200); }
+.status.error   { background: #FFF2F2; color: #D70015; border: 0.5px solid #FFBDBD; }
+
+.spin {
+  width: 15px; height: 15px; flex-shrink: 0;
+  border: 1.5px solid var(--gray-200);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.step-pills {
+  display: flex; gap: 4px; margin-left: auto;
+}
+.pill {
+  height: 4px; width: 20px; border-radius: 2px;
+  background: var(--gray-200);
+  transition: background 0.3s ease, width 0.3s ease;
+}
+.pill.active { background: var(--blue); width: 28px; }
+.pill.done   { background: var(--gray-400); }
+
+/* ── AI DESCRIPTION ────────────────────────── */
+.desc-box {
+  display: none;
+  margin: 14px 20px 0;
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  border-left: 2px solid var(--blue);
+}
+.desc-box.on { display: block; }
+.desc-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 5px;
+}
+.desc-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--gray-600);
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+
+/* ── RESULTS ───────────────────────────────── */
+.results { display: none; padding: 20px 20px 40px; }
+.results.on { display: block; }
+
+.results-hdr {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 16px;
+}
+.results-hdr h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--gray-900);
+}
+.results-hdr span {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--gray-400);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media(min-width: 400px) {
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--gray-100);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease;
+}
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+}
+.card:active { transform: scale(0.98); }
+
+.card-img {
+  width: 100%; aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--surface-2);
+  display: block;
+}
+.card-img-ph {
+  width: 100%; aspect-ratio: 1;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+}
+.card-body { padding: 10px 12px 12px; }
+.card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-900);
+  letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.card-meta {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--gray-400);
+  letter-spacing: -0.005em;
+  margin-bottom: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-foot {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+  letter-spacing: -0.02em;
+}
+.badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 980px;
+  background: var(--surface-2);
+  color: var(--gray-600);
+  letter-spacing: -0.005em;
+}
+.badge.hi {
+  background: #E3F2E8;
+  color: #1A7F37;
+}
+
+/* ── CAMERA MODAL ──────────────────────────── */
+.modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0;
+}
+.modal-bg.on { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  overflow: hidden;
+  width: 100%; max-width: 460px;
+  animation: slideUp 0.28s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--gray-200);
+  border-radius: 2px;
+  margin: 10px auto 14px;
+}
+.modal-title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-900);
+  letter-spacing: -0.02em;
+  padding-bottom: 14px;
+  border-bottom: 0.5px solid var(--gray-100);
+}
+.modal-video {
+  width: 100%; aspect-ratio: 4/3;
+  background: #000; display: block; object-fit: cover;
+}
+.modal-foot {
+  padding: 16px 20px 28px;
+  display: flex; gap: 10px;
+}
+.capture-btn {
+  flex: 1; padding: 14px;
+  background: var(--blue);
+  color: white;
+  border: none; border-radius: 980px;
+  font-family: var(--sans);
+  font-size: 15px; font-weight: 500;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: background 0.12s ease, transform 0.1s ease;
+}
+.capture-btn:hover  { background: var(--blue-hover); }
+.capture-btn:active { transform: scale(0.98); }
+.cancel-btn {
+  padding: 14px 20px;
+  background: var(--surface-2);
+  border: none; border-radius: 980px;
+  font-family: var(--sans);
+  font-size: 15px; font-weight: 500;
+  color: var(--gray-900);
+  cursor: pointer;
+}
+canvas { display: none; }
+</style>
+
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  CONFIGURE: your n8n webhook URL only   ║
+     ╚══════════════════════════════════════════╝ -->
+
+<script>
+const N8N_WEBHOOK_URL = "https://YOUR-N8N-INSTANCE.com/webhook/starmatch";
+</script>
+
+<!-- Header -->
+
+<header class="hdr">
+  <div class="hdr-crown">
+    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 14L5.5 6L10 10L14.5 6L17 14H3Z" fill="white" stroke="white" stroke-width="1.2" stroke-linejoin="round"/>
+      <circle cx="3" cy="6" r="1.5" fill="white"/>
+      <circle cx="10" cy="4.5" r="1.5" fill="white"/>
+      <circle cx="17" cy="6" r="1.5" fill="white"/>
+    </svg>
+  </div>
+  <span class="hdr-title">CrownRingMatch</span>
+  <span class="hdr-sub">Powered by AI</span>
+</header>
+
+<!-- Hero -->
+
+<div class="hero">
+  <h1>Find your perfect ring</h1>
+  <p>Upload a photo and we'll instantly match it to our collection.</p>
+</div>
+
+<!-- Upload -->
+
+<div class="upload-wrap">
+  <div class="drop" id="drop">
+    <input type="file" id="file-in" accept="image/*"/>
+    <div class="drop-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    </div>
+    <h2>Drop a photo here</h2>
+    <p>or click to browse your library</p>
+  </div>
+</div>
+
+<div class="or-row">or</div>
+
+<button class="cam-btn" id="cam-btn">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </svg>
+  Use Camera
+</button>
+
+<!-- Preview -->
+
+<div class="preview" id="preview">
+  <img class="prev-img" id="prev-img" src="" alt=""/>
+  <div class="prev-info">
+    <p class="prev-name" id="prev-name"></p>
+    <div class="prev-actions">
+      <button class="btn-blue" id="search-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Search
+      </button>
+      <button class="btn-ghost" id="clear-btn">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- Status -->
+
+<div class="status loading" id="status">
+  <div class="spin"></div>
+  <span id="status-txt">Analysing…</span>
+  <div class="step-pills">
+    <div class="pill" id="p1"></div>
+    <div class="pill" id="p2"></div>
+    <div class="pill" id="p3"></div>
+  </div>
+</div>
+
+<!-- Description -->
+
+<div class="desc-box" id="desc-box">
+  <div class="desc-label">AI identified</div>
+  <div class="desc-text" id="desc-txt"></div>
+</div>
+
+<!-- Results -->
+
+<div class="results" id="results">
+  <div class="results-hdr">
+    <h2>Matches</h2>
+    <span id="res-count"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Camera Modal (iOS-style sheet) -->
+
+<div class="modal-bg" id="cam-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Take a Photo</div>
+    <video id="cam-video" class="modal-video" autoplay playsinline muted></video>
+    <canvas id="cam-canvas"></canvas>
+    <div class="modal-foot">
+      <button class="capture-btn" id="capture-btn">Capture</button>
+      <button class="cancel-btn" id="modal-close">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const drop      = document.getElementById('drop');
+const fileIn    = document.getElementById('file-in');
+const preview   = document.getElementById('preview');
+const prevImg   = document.getElementById('prev-img');
+const prevName  = document.getElementById('prev-name');
+const searchBtn = document.getElementById('search-btn');
+const clearBtn  = document.getElementById('clear-btn');
+const statusEl  = document.getElementById('status');
+const statusTxt = document.getElementById('status-txt');
+const pills     = [document.getElementById('p1'),document.getElementById('p2'),document.getElementById('p3')];
+const descBox   = document.getElementById('desc-box');
+const descTxt   = document.getElementById('desc-txt');
+const results   = document.getElementById('results');
+const grid      = document.getElementById('grid');
+const resCount  = document.getElementById('res-count');
+const camBtn    = document.getElementById('cam-btn');
+const camModal  = document.getElementById('cam-modal');
+const modalClose= document.getElementById('modal-close');
+const camVideo  = document.getElementById('cam-video');
+const camCanvas = document.getElementById('cam-canvas');
+const captureBtn= document.getElementById('capture-btn');
+
+let selectedFile = null, camStream = null;
+
+function pickFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  selectedFile = file;
+  prevImg.src = URL.createObjectURL(file);
+  prevName.textContent = file.name || 'photo.jpg';
+  preview.classList.add('on');
+  hide(); descBox.classList.remove('on'); results.classList.remove('on');
+}
+
+fileIn.addEventListener('change', e => pickFile(e.target.files[0]));
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); pickFile(e.dataTransfer.files[0]); });
+
+clearBtn.addEventListener('click', () => {
+  selectedFile = null; fileIn.value = '';
+  preview.classList.remove('on'); hide();
+  descBox.classList.remove('on'); results.classList.remove('on');
+});
+
+camBtn.addEventListener('click', async () => {
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    camVideo.srcObject = camStream;
+    camModal.classList.add('on');
+  } catch { alert('Camera permission denied or unavailable.'); }
+});
+
+function closeCamera() {
+  camModal.classList.remove('on');
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+}
+modalClose.addEventListener('click', closeCamera);
+
+captureBtn.addEventListener('click', () => {
+  camCanvas.width  = camVideo.videoWidth;
+  camCanvas.height = camVideo.videoHeight;
+  camCanvas.getContext('2d').drawImage(camVideo, 0, 0);
+  camCanvas.toBlob(blob => {
+    pickFile(new File([blob], 'photo.jpg', { type: 'image/jpeg' }));
+    closeCamera();
+  }, 'image/jpeg', 0.92);
+});
+
+function show(msg, step) {
+  statusTxt.textContent = msg;
+  statusEl.className = 'status loading on';
+  pills.forEach((p, i) => {
+    p.className = 'pill' + (i < step ? ' done' : i === step ? ' active' : '');
+  });
+}
+function hide() { statusEl.classList.remove('on'); }
+function showErr(msg) { statusTxt.textContent = msg; statusEl.className = 'status error on'; }
+
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+searchBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  searchBtn.disabled = true;
+  descBox.classList.remove('on'); results.classList.remove('on');
+
+  try {
+    show('Sending to CrownRingMatch AI…', 0);
+    const imageDataUrl = await toBase64(selectedFile);
+
+    const res = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: imageDataUrl,
+        filename: selectedFile.name,
+        match_count: 6,
+        match_threshold: 0.30
+      })
+    });
+
+    show('Finding visual matches…', 1);
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`Webhook error ${res.status}: ${txt.slice(0, 120)}`);
+    }
+
+    show('Almost there…', 2);
+
+    const data = await res.json();
+    hide();
+
+    if (data.description) {
+      descTxt.textContent = data.description;
+      descBox.classList.add('on');
+    }
+    renderResults(data.matches || []);
+
+  } catch(e) {
+    showErr(e.message);
+    console.error(e);
+  } finally {
+    searchBtn.disabled = false;
+  }
+});
+
+function renderResults(rings) {
+  grid.innerHTML = '';
+  if (!rings.length) {
+    resCount.textContent = '0 results';
+    grid.innerHTML = '<p style="font-size:14px;color:var(--gray-400);grid-column:1/-1;padding:4px 0;letter-spacing:-0.01em">No matches found. Try a clearer photo with good lighting.</p>';
+    results.classList.add('on');
+    return;
+  }
+
+  resCount.textContent = rings.length + (rings.length === 1 ? ' result' : ' results');
+  const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+  rings.forEach(r => {
+    const pct  = Math.round((r.similarity || 0) * 100);
+    const card = document.createElement('a');
+    card.className = 'card';
+    card.href   = r.url || '#';
+    card.target = '_blank';
+    card.rel    = 'noopener';
+
+    const imgEl = r.thumbnail
+      ? `<img class="card-img" src="${r.thumbnail}" alt="${r.name || 'Ring'}" loading="lazy"/>`
+      : `<div class="card-img-ph">💍</div>`;
+
+    const meta = [r.metal, r.style].filter(Boolean).join(' · ');
+
+    card.innerHTML = `
+      ${imgEl}
+      <div class="card-body">
+        <p class="card-name">${r.name || r.ring_id || '—'}</p>
+        <p class="card-meta">${meta || '&nbsp;'}</p>
+        <div class="card-foot">
+          <span class="card-price">${r.price ? fmt.format(r.price) : '—'}</span>
+          <span class="badge${pct >= 75 ? ' hi' : ''}">${pct}%</span>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  results.classList.add('on');
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+
+</body>
+</html>

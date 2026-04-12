@@ -1,0 +1,169 @@
+{
+  "name": "CrownRingMatch",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "starmatch",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "crownringmatch-starmatch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Strip the data URL prefix and extract base64 + media type\nconst item = $input.first();\nconst imageDataUrl = item.json.image || '';\nconst filename     = item.json.filename        || 'photo.jpg';\nconst matchCount   = item.json.match_count     || 6;\nconst matchThreshold = item.json.match_threshold || 0.30;\n\nlet base64Data = imageDataUrl;\nlet mediaType  = 'image/jpeg';\n\nif (imageDataUrl.startsWith('data:')) {\n  const comma = imageDataUrl.indexOf(',');\n  const header = imageDataUrl.slice(0, comma);\n  base64Data   = imageDataUrl.slice(comma + 1);\n  mediaType    = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';\n}\n\nreturn [{ json: { base64Data, mediaType, filename, matchCount, matchThreshold } }];"
+      },
+      "id": "2",
+      "name": "Prepare image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key",          "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version",   "value": "2023-06-01" },
+            { "name": "content-type",        "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-5\",\n  \"max_tokens\": 400,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": \"image\",\n          \"source\": {\n            \"type\": \"base64\",\n            \"media_type\": \"{{ $json.mediaType }}\",\n            \"data\": \"{{ $json.base64Data }}\"\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"text\": \"Describe this ring in detail for product matching. Include: metal color (yellow gold, white gold, rose gold, silver, platinum), ring style (solitaire, halo, eternity, band, cluster, pave, bypass, tension), stone shape if present (round, princess, oval, cushion, emerald, pear, marquise, radiant, asscher, heart), stone type (diamond, sapphire, ruby, emerald, moissanite, none), setting type (prong, bezel, channel, tension), overall style (classic, vintage, modern, art deco, bohemian), and any other distinctive features. Be specific and consistent. One paragraph only, no fluff, no preamble.\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "3",
+      "name": "Claude Vision",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const visionResponse = $input.first();\nconst description = visionResponse.json.content?.[0]?.text || '';\n\nconst prepareNode   = $('Prepare image').first();\nconst matchCount    = prepareNode.json.matchCount    || 6;\nconst matchThreshold = prepareNode.json.matchThreshold || 0.30;\n\nreturn [{ json: { description, matchCount, matchThreshold } }];"
+      },
+      "id": "4",
+      "name": "Extract description",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.OPENAI_API_KEY }}" },
+            { "name": "content-type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"text-embedding-3-small\",\n  \"input\": \"{{ $json.description }}\"\n}",
+        "options": {}
+      },
+      "id": "5",
+      "name": "Embed description",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/match_rings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "content-type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  query_embedding: $input.first().json.data[0].embedding,\n  match_threshold: $('Extract description').first().json.matchThreshold,\n  match_count:     $('Extract description').first().json.matchCount\n}) }}",
+        "options": {}
+      },
+      "id": "6",
+      "name": "Vector search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const searchResults = $input.first();\nconst raw = searchResults.json;\nconst matches = Array.isArray(raw) ? raw : [];\n\nconst description = $('Extract description').first().json.description;\n\nconst formattedMatches = matches.map(ring => ({\n  ring_id:   ring.ring_id   || ring.id,\n  name:      ring.name,\n  thumbnail: ring.thumbnail_url || ring.image_url || null,\n  url:       ring.product_url   || ring.url       || null,\n  metal:     ring.metal  || null,\n  style:     ring.style  || null,\n  price:     ring.price  || null,\n  similarity: ring.similarity\n}));\n\nreturn [{ json: { description, matches: formattedMatches } }];"
+      },
+      "id": "7",
+      "name": "Format results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin",  "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type" }
+            ]
+          }
+        }
+      },
+      "id": "8",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1780, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Prepare image",      "type": "main", "index": 0 }]]
+    },
+    "Prepare image": {
+      "main": [[{ "node": "Claude Vision",      "type": "main", "index": 0 }]]
+    },
+    "Claude Vision": {
+      "main": [[{ "node": "Extract description","type": "main", "index": 0 }]]
+    },
+    "Extract description": {
+      "main": [[{ "node": "Embed description",  "type": "main", "index": 0 }]]
+    },
+    "Embed description": {
+      "main": [[{ "node": "Vector search",      "type": "main", "index": 0 }]]
+    },
+    "Vector search": {
+      "main": [[{ "node": "Format results",     "type": "main", "index": 0 }]]
+    },
+    "Format results": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "meta": { "instanceId": "crownringmatch" }
+}
